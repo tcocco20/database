@@ -4,8 +4,10 @@ const db1 = coccoData.bronze.create();
 
 db1.newEntry().addField("name", "Kevin L");
 db1.newEntry().addField("name", "John S");
-// db1.newEntry().addField("name", "Rob C");
 // db1.remove(1);
+db1.newEntry().addField("name", "Rob C");
+// db1.remove(2);
+// db1.newEntry().addField("name", "Jason B");
 // db1.edit(0)
 // db1.getById(0)
 // db1.getByField("name", "Kevin L")
@@ -43,4 +45,4 @@ db3.edit(0).field("phone", "123-456-7890");
 // console.log(db3.getByField("name", "Kevin L").current.entry);
 // console.log(db3.getByField("name", "Kevin L").next().current.id);
 // db3.getByField("name", "Kevin L").next().current.addField("phone", "555-666-7777");
-console.log(db3.getAll());
+// console.log(db3.getAll());

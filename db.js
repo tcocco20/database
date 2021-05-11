@@ -1,4 +1,6 @@
-export const coccoData = (() => {
+import { proxy } from "./errorHandler.js";
+
+export const coccoData = ((proxy) => {
   const dbSystem = (() => {
     const dbManager = (tier) => {
       const dataBase = {};
@@ -10,13 +12,14 @@ export const coccoData = (() => {
       };
 
       const newEntry = () => {
-        if (id === membership.limit) {
-          console.error("Membership limit reached.");
-          return;
+        let response = {};
+
+        if (Object.keys(dataBase).length < membership.limit) {
+          const newId = createEntry();
+          response = { addField: edit(newId).field };
         }
 
-        const newId = createEntry();
-        return { addField: edit(newId).field };
+        return proxy(response, "Membership limit reached");
       };
 
       const edit = (id) => ({ field: addField(id) });
@@ -28,23 +31,33 @@ export const coccoData = (() => {
       const getByField = (field, value) => {
         const results = Object.keys(dataBase)
           .filter((id) => dataBase[id][field] === value)
-          .map((id) => ({
-            id,
-            entry: dataBase[id],
-            addField: edit(id).field,
-            remove: remove.bind(null, id),
-          }));
+          .map((id) => {
+            const options = {
+              id,
+              entry: dataBase[id],
+              field: edit(id).field,
+              remove: remove.bind(null, id),
+            };
+
+            return proxy(options);
+          });
 
         let i = 0;
 
         const next = () => {
-          if (++i < results.length) return { current: results[i], next };
-          return { current: results[i] };
+          const response = { current: results[i] };
+          if (++i < results.length) response.next = next;
+
+          return proxy(response);
         };
 
-        if (results.length > 1)
-          return { current: results[i], next, all: results };
-        return { current: results[i] };
+        const response = { current: results[i] };
+        if (results.length > 1) {
+          response.next = next;
+          response.all = results;
+        }
+
+        return proxy(response);
       };
 
       const basic = { newEntry, getAll, remove };
@@ -74,20 +87,22 @@ export const coccoData = (() => {
 
       const membership = access[get()];
 
-      return membership.features;
+      return proxy(
+        membership.features,
+        "Feature not available to you peasants"
+      );
     };
 
     const signUp = (tier) => dbManager(tier);
 
-    return { signUp };
+    return proxy({ signUp });
   })();
 
   const createDb = (tier) => () => dbSystem.signUp(tier);
 
-  return {
-    bronze: { create: createDb("bronze") },
-    silver: { create: createDb("silver") },
-    gold: { create: createDb("gold") },
-  };
-})();
-
+  return proxy({
+    bronze: proxy({ create: createDb("bronze") }),
+    silver: proxy({ create: createDb("silver") }),
+    gold: proxy({ create: createDb("gold") }),
+  });
+})(proxy);
